@@ -19,8 +19,6 @@ public class LoadActivity extends AppCompatActivity {
         setContentView(R.layout.activity_load);
         progressBar = findViewById(R.id.progressBar);
         progressBar.setMax(100);
-        progressBar.getProgressDrawable().setColorFilter(
-                Color.RED, android.graphics.PorterDuff.Mode.SRC_IN);
         final AppCompatActivity main = this;
         new AsyncTask<Void, Void, Void>() {
             @Override
