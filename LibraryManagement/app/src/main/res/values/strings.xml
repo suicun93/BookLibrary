@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">BookSearch</string>
+    <string name="app_name">Search your book</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_book_detail">BookDetailActivity</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_load">Library Search</string>
+    <string name="loading_openlibrary">Loading OpenLibrary</string>
+    <string name="published_by">Published By</string>
+    <string name="no_image_found">No Image found</string>
+    <string name="title_activity_web_view_acivity">WebViewAcivity</string>
 
 </resources>

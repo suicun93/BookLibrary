@@ -11,8 +11,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.squareup.picasso.Picasso;
@@ -25,10 +28,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import cz.msebera.android.httpclient.Header;
 import fpt.edu.vn.librarymanagement.R;
+import fpt.edu.vn.librarymanagement.WebViewAcivity;
 import fpt.edu.vn.librarymanagement.models.Book;
 import fpt.edu.vn.librarymanagement.net.BookClient;
-import cz.msebera.android.httpclient.Header;
+
 public class BookDetailActivity extends AppCompatActivity {
     private ImageView ivBookCover;
     private TextView tvTitle;
@@ -36,20 +41,37 @@ public class BookDetailActivity extends AppCompatActivity {
     private TextView tvPublisher;
     private TextView tvPageCount;
     private BookClient client;
+    private LinearLayout linearLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_book_detail);
         // Fetch views
+        linearLayout = findViewById(R.id.containerLayout);
         ivBookCover = (ImageView) findViewById(R.id.ivBookCover);
         tvTitle = (TextView) findViewById(R.id.tvTitle);
         tvAuthor = (TextView) findViewById(R.id.tvAuthor);
         tvPublisher = (TextView) findViewById(R.id.tvPublisher);
         tvPageCount = (TextView) findViewById(R.id.tvPageCount);
         // Use the book to populate the data into our views
-        Book book = (Book) getIntent().getSerializableExtra(BookListActivity.BOOK_DETAIL_KEY);
+        final Book book = (Book) getIntent().getSerializableExtra(BookListActivity.BOOK_DETAIL_KEY);
         loadBook(book);
+
+        // read on webview when click on book
+        final AppCompatActivity main = this;
+        linearLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (book.getOpenLibraryId().isEmpty()) {
+                    Toast.makeText(BookDetailActivity.this, "No id found for this book", Toast.LENGTH_SHORT).show();
+                } else {
+                    Intent intent = new Intent(main, WebViewAcivity.class);
+                    intent.putExtra("link", "https://openlibrary.org/books/" + book.getOpenLibraryId());
+                    startActivity(intent);
+                }
+            }
+        });
     }
 
     // Populate data for the book
@@ -66,8 +88,10 @@ public class BookDetailActivity extends AppCompatActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 try {
+
                     if (response.has("publishers")) {
                         // display comma separated list of publishers
+                        // http://openlibrary.org/books/OL25416691M.json
                         final JSONArray publisher = response.getJSONArray("publishers");
                         final int numPublishers = publisher.length();
                         final String[] publishers = new String[numPublishers];
@@ -110,7 +134,7 @@ public class BookDetailActivity extends AppCompatActivity {
 
     private void setShareIntent() {
         ImageView ivImage = (ImageView) findViewById(R.id.ivBookCover);
-        final TextView tvTitle = (TextView)findViewById(R.id.tvTitle);
+        final TextView tvTitle = (TextView) findViewById(R.id.tvTitle);
         // Get access to the URI for the bitmap
         Uri bmpUri = getLocalBitmapUri(ivImage);
         // Construct a ShareIntent with link to image
@@ -118,7 +142,7 @@ public class BookDetailActivity extends AppCompatActivity {
         // Construct a ShareIntent with link to image
         shareIntent.setAction(Intent.ACTION_SEND);
         shareIntent.setType("*/*");
-        shareIntent.putExtra(Intent.EXTRA_TEXT, (String)tvTitle.getText());
+        shareIntent.putExtra(Intent.EXTRA_TEXT, (String) tvTitle.getText());
         shareIntent.putExtra(Intent.EXTRA_STREAM, bmpUri);
         // Launch share menu
         startActivity(Intent.createChooser(shareIntent, "Share Book"));
@@ -130,7 +154,7 @@ public class BookDetailActivity extends AppCompatActivity {
         // Extract Bitmap from ImageView drawable
         Drawable drawable = imageView.getDrawable();
         Bitmap bmp = null;
-        if (drawable instanceof BitmapDrawable){
+        if (drawable instanceof BitmapDrawable) {
             bmp = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
         } else {
             return null;
@@ -138,7 +162,7 @@ public class BookDetailActivity extends AppCompatActivity {
         // Store image to default external storage directory
         Uri bmpUri = null;
         try {
-            File file =  new File(Environment.getExternalStoragePublicDirectory(
+            File file = new File(Environment.getExternalStoragePublicDirectory(
                     Environment.DIRECTORY_DOWNLOADS), "share_image_" + System.currentTimeMillis() + ".png");
             file.getParentFile().mkdirs();
             FileOutputStream out = new FileOutputStream(file);
